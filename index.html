@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kişiselleştirilmiş Sağlık & Barkod Tarayıcı</title>
+  <!-- Barkod Okuma Kütüphanesi (HTML5-QRCode) -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; background: #f4f7f6; }
+    h2 { text-align: center; color: #2c3e50; }
+    #reader { width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    #sonuc-karti { margin-top: 20px; padding: 15px; border-radius: 8px; background: white; display: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .uyari-tehlikeli { border-left: 6px solid #e74c3c; background-color: #fdf2e9; }
+    .uyari-guvenli { border-left: 6px solid #2ecc71; background-color: #eafaf1; }
+    button { width: 100%; padding: 12px; margin-top: 10px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+  <h2>Sağlık & Barkod Analiz</h2>
+  
+  <!-- Kamera Ekranı -->
+  <div id="reader"></div>
+
+  <!-- Sonuç Ekranı -->
+  <div id="sonuc-karti">
+    <h3 id="urun-adi">Ürün Yükleniyor...</h3>
+    <p><strong>Şeker (100g):</strong> <span id="seker-miktari">-</span> g</p>
+    <div id="saglik-degerlendirmesi"></div>
+    <button onclick="tarayiciyiYenidenBaslat()">Yeni Barkod Tara</button>
+  </div>
+
+  <script>
+    let html5QrcodeScanner;
+
+    // 1. Kamera ve Barkod Tarayıcıyı Başlat
+    function tarayiciYuku() {
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
+      html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    // 2. Barkod Otomatik Okunduğunda Çalışan Fonksiyon
+    async function onScanSuccess(decodedText, decodedResult) {
+      console.log(`Barkod Algılandı: ${decodedText}`);
+      
+      // Taramayı durdur
+      html5QrcodeScanner.clear();
+
+      // API'ye Otomatik İstek Gönder
+      await apiVeriCekVeAnalizEt(decodedText);
+    }
+
+    // 3. Open Food Facts API Entegrasyonu & Sağlık Algoritması
+    async function apiVeriCekVeAnalizEt(barkod) {
+      const sonucKarti = document.getElementById("sonuc-karti");
+      sonucKarti.style.display = "block";
+      document.getElementById("urun-adi").innerText = "Ürün Verisi Çekiliyor...";
+
+      try {
+        const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barkod}.json`);
+        const data = await response.json();
+
+        if (data.status === 1) {
+          const urun = data.product;
+          const urunAdi = urun.product_name_tr || urun.product_name || "İsimsiz Ürün";
+          const seker = urun.nutriments?.sugars_100g || 0;
+
+          document.getElementById("urun-adi").innerText = urunAdi;
+          document.getElementById("seker-miktari").innerText = seker;
+
+          // ÖRNEK SAĞLIK KURAL ALGORİTMASI (Diyabet Senaryosu)
+          // Gerçekte bu kuralları kullanıcının profilindeki hastalıklara göre dinamik yapacaksınız
+          const kullaniciDiyabetHastasiMi = true; 
+
+          const degerlendirmeDiv = document.getElementById("saglik-degerlendirmesi");
+          if (kullaniciDiyabetHastasiMi && seker > 5) {
+            sonucKarti.className = "uyari-tehlikeli";
+            degerlendirmeDiv.innerHTML = `<p style="color: #c0392b;"><strong>ALERT:</strong> Diyabet hastaları için yüksek şeker oranı! Tüketilmesi önerilmez.</p>`;
+          } else {
+            sonucKarti.className = "uyari-guvenli";
+            degerlendirmeDiv.innerHTML = `<p style="color: #27ae60;"><strong>UYGUN:</strong> Sağlık profilinize uygun görünmektedir.</p>`;
+          }
+
+        } else {
+          document.getElementById("urun-adi").innerText = "Ürün Bulunamadı!";
+          document.getElementById("saglik-degerlendirmesi").innerText = "Bu barkod Open Food Facts veritabanında henüz kayıtlı değil.";
+        }
+      } catch (error) {
+        console.error("API Hata:", error);
+        document.getElementById("urun-adi").innerText = "Bağlantı Hatası Oluştu!";
+      }
+    }
+
+    function tarayiciyiYenidenBaslat() {
+      document.getElementById("sonuc-karti").style.display = "none";
+      tarayiciYuku();
+    }
+
+    // Sayfa Yüklendiğinde Taramayı Başlat
+    window.onload = tarayiciYuku;
+  </script>
+</body>
+</html>
