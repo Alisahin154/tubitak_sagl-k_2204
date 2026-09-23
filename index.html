@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sağlık & Barkod Analiz Asistanı</title>
+  <title>Sağlık & Barkod Analiz Asistanı (Gemini AI Destekli)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- OCR İçin Tesseract.js Entegrasyonu -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body class="bg-slate-100 font-sans min-h-screen pb-12">
 
@@ -16,7 +14,7 @@
     <div class="max-w-md mx-auto flex justify-between items-center">
       <div>
         <h1 class="text-xl font-bold">Sağlık Asistanı</h1>
-        <p class="text-xs text-indigo-200">Kişiselleştirilmiş Akıllı Ürün Analizi</p>
+        <p class="text-xs text-indigo-200">Vision AI Destekli Ürün Analizi</p>
       </div>
       <span class="text-xs bg-indigo-800 px-2.5 py-1 rounded-full font-medium border border-indigo-400/30">TÜBİTAK 2204</span>
     </div>
@@ -42,11 +40,11 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">Yaş</label>
-          <input type="number" id="age" value="25" onchange="saveProfile()" class="w-full text-xs border rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="number" id="age" value="16" onchange="saveProfile()" class="w-full text-xs border rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">Boy (cm)</label>
-          <input type="number" id="height" value="170" onchange="saveProfile()" class="w-full text-xs border rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input type="number" id="height" value="175" onchange="saveProfile()" class="w-full text-xs border rounded-xl px-3 py-2 bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">Kilo (kg)</label>
@@ -112,40 +110,34 @@
     <!-- Yükleniyor Göstergesi -->
     <div id="loading" class="hidden text-center py-6 bg-white rounded-2xl shadow-sm border">
       <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-indigo-600 border-t-transparent"></div>
-      <p id="loading-text" class="text-sm text-slate-600 mt-2 font-medium">Ürün bilgileri getiriliyor...</p>
+      <p id="loading-text" class="text-sm text-slate-600 mt-2 font-medium">İşleniyor...</p>
     </div>
 
-    <!-- 3. VERİTABANINDA BULUNAMAYAN ÜRÜNLER İÇİN OCR VE MANUEL İÇİNDEKİLER MODALI -->
+    <!-- 3. VERİTABANINDA BULUNAMAYAN ÜRÜNLER İÇİN GEMINI VISION AI MODALI -->
     <section id="ocr-fallback-card" class="hidden bg-amber-50 p-5 rounded-2xl border border-amber-300 space-y-4">
       <div class="flex items-start space-x-3">
-        <span class="text-2xl">⚠️</span>
+        <span class="text-2xl">✨</span>
         <div>
-          <h3 class="text-sm font-bold text-amber-900">Ürün Veritabanında Bulunamadı</h3>
-          <p class="text-xs text-amber-700 mt-1">Lütfen etiketin/içindekilerin fotoğrafını çekin veya metni manuel girerek analizi tamamlayın.</p>
+          <h3 class="text-sm font-bold text-amber-900">Yapay Zeka Görsel Analizi</h3>
+          <p class="text-xs text-amber-700 mt-1">Ürün Open Food Facts'te bulunamadı. Yapay zeka ile analiz etmek için etiketin fotoğrafını yükleyin.</p>
         </div>
       </div>
 
-      <!-- OCR Fotoğraf Yükleme Seçeneği -->
+      <!-- Kamera / Fotoğraf Yükleme Seçeneği -->
       <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-2">
-        <label class="block text-xs font-bold text-slate-700">1. İçindekiler Etiketinin Fotoğrafını Yükleyin (OCR):</label>
-        <input type="file" id="ocr-image-input" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        <label class="block text-xs font-bold text-slate-700">İçindekiler / Besin Tablosu Fotoğrafı:</label>
+        <input type="file" id="ai-image-input" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
       </div>
 
-      <!-- Manuel Metin Girişi -->
-      <div class="bg-white p-3 rounded-xl border border-amber-200 space-y-2">
-        <label class="block text-xs font-bold text-slate-700">2. Veya İçindekileri Manuel Yazın:</label>
-        <textarea id="manual-ingredients-text" rows="3" placeholder="Örn: Buğday unu, şeker, bitkisel yağ, süt tozu, fındık, lesitin..." class="w-full text-xs border rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-      </div>
-
-      <button onclick="processFallbackAnalysis()" class="w-full bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-amber-700 transition">
-        Metni / Fotoğrafı Analiz Et
+      <button onclick="processAIAnalysis()" class="w-full bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-amber-700 transition flex items-center justify-center space-x-2">
+        <span>Gemini AI ile Analiz Et</span>
       </button>
     </section>
 
     <!-- 4. Detaylı Ürün Analiz Kartı -->
     <section id="result-card" class="hidden bg-white p-5 rounded-2xl shadow-md border border-slate-200 space-y-4">
       
-      <!-- Başlık, Marka, Görsel ve Nutri-Score -->
+      <!-- Başlık, Marka, Görsel -->
       <div class="flex items-start justify-between">
         <div class="flex items-center space-x-3">
           <img id="product-img" src="" alt="Ürün" class="w-16 h-16 object-contain rounded-lg border p-1 bg-slate-50 hidden">
@@ -154,21 +146,15 @@
             <p id="product-brand" class="text-xs text-slate-500 font-medium">Marka</p>
           </div>
         </div>
-        <div id="nutriscore-badge" class="hidden px-3 py-1 rounded-lg text-xs font-bold text-white uppercase"></div>
+        <div id="ai-badge" class="hidden px-2 py-1 rounded-lg text-[10px] font-bold text-white bg-indigo-600 uppercase">AI Onaylı</div>
       </div>
 
       <!-- Kişiselleştirilmiş Sağlık Değerlendirme Kutusu -->
       <div id="health-status" class="p-4 rounded-xl text-sm font-medium border-l-4"></div>
 
-      <!-- Fiziksel Profile Göre Günlük İhtiyaç Yüzde Paneli -->
-      <div id="daily-limits-box" class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 text-xs space-y-1">
-        <span class="font-bold text-indigo-900 block mb-1">📊 Kişisel Günlük Limit Tahmini (100g İle):</span>
-        <div id="daily-limits-content" class="text-indigo-800 space-y-0.5"></div>
-      </div>
-
       <!-- Besin Değerleri Detay Tablosu -->
       <div>
-        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Besin Değerleri (100g / 100ml)</h4>
+        <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">Tespit Edilen Besin Değerleri (100g)</h4>
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80">
             <span class="text-slate-500 block">Şeker</span>
@@ -206,15 +192,38 @@
   </main>
 
   <script>
+    // --- GÜVENLİK NOTU: Proje canlıya alındığında API anahtarı backend/sunucu tarafına taşınmalıdır ---
+    const GEMINI_API_KEY = "AQ.Ab8RN6LVBGJpRgpTPynSnHwvgWS3--s3tN_W4BzFkdtWbHNMSg"; 
+    
     let html5QrCode;
 
-    // Sayfa Yüklendiğinde Kayıtlı Profili Yükle ve Kamerayı Başlat
     window.addEventListener('DOMContentLoaded', () => {
       loadProfile();
       initBackCamera();
     });
 
-    // Profil Ayarlarını LocalStorage Üzerinden Saklama
+    // Kullanıcı Profilini Metne Dönüştürme (Yapay Zeka İçin)
+    function getUserProfileString() {
+      const p = {
+        gender: document.getElementById('gender').value === 'female' ? 'Kadın' : 'Erkek',
+        age: document.getElementById('age').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        diabet: document.getElementById('diabet').checked ? 'Diyabet Hastası' : '',
+        hyper: document.getElementById('hyper').checked ? 'Hipertansiyon Hastası (Tuz Hassas)' : '',
+        celiac: document.getElementById('celiac').checked ? 'Çölyak (Gluten Tüketemez)' : '',
+        lactose: document.getElementById('lactose').checked ? 'Laktoz İntoleransı' : '',
+        cholesterol: document.getElementById('cholesterol').checked ? 'Yüksek Kolesterol' : '',
+        kidney: document.getElementById('kidney').checked ? 'Böbrek Hastası (Protein/Tuz Kısıtı)' : '',
+        nutAllergy: document.getElementById('nut-allergy').checked ? 'Kuruyemiş/Fıstık Alerjisi Var' : '',
+        athlete: document.getElementById('athlete').checked ? 'Sporcu (Yüksek Protein Arar)' : ''
+      };
+
+      const conditions = [p.diabet, p.hyper, p.celiac, p.lactose, p.cholesterol, p.kidney, p.nutAllergy, p.athlete].filter(c => c !== '').join(', ');
+      return `Kullanıcı: ${p.age} yaşında, ${p.gender}, Boy: ${p.height}cm, Kilo:${p.weight}kg. Hastalık/Diyet profili: ${conditions || 'Belirtilmedi'}.`;
+    }
+
+    // Profil Saklama/Yükleme
     function saveProfile() {
       const profile = {
         gender: document.getElementById('gender').value,
@@ -252,12 +261,13 @@
       document.getElementById('athlete').checked = !!p.athlete;
     }
 
+    // Kamera ve Barkod
     function initBackCamera() {
       html5QrCode = new Html5Qrcode("reader");
       const config = { fps: 10, qrbox: { width: 220, height: 180 } };
 
       html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-        .catch(err => {
+        .catch(() => {
           html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
             .catch(e => console.error("Kamera açılamadı:", e));
         });
@@ -273,10 +283,7 @@
 
     function handleManualSearch() {
       const barcode = document.getElementById('manual-barcode').value.trim();
-      if (!barcode) {
-        alert("Lütfen geçerli bir barkod numarası girin.");
-        return;
-      }
+      if (!barcode) return alert("Lütfen barkod girin.");
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => fetchProductData(barcode)).catch(() => fetchProductData(barcode));
       } else {
@@ -285,7 +292,7 @@
     }
 
     function fetchProductData(barcode) {
-      showLoading(true, "Ürün veritabanından çekiliyor...");
+      showLoading(true, "Veritabanı aranıyor...");
       document.getElementById('result-card').classList.add('hidden');
       document.getElementById('ocr-fallback-card').classList.add('hidden');
 
@@ -294,97 +301,133 @@
         .then(data => {
           showLoading(false);
           if (data.status === 1) {
-            displayResults(data.product);
+            displayResults(data.product, false);
           } else {
-            // Veritabanında ürün bulunamadı -> OCR / Manuel Giriş Kartını Aç
             document.getElementById('ocr-fallback-card').classList.remove('hidden');
           }
         })
         .catch(err => {
           showLoading(false);
-          console.error(err);
           document.getElementById('ocr-fallback-card').classList.remove('hidden');
         });
     }
 
-    // OCR ve Manuel Girdi İşleme Fonksiyonu
-    async function processFallbackAnalysis() {
-      const fileInput = document.getElementById('ocr-image-input');
-      const manualText = document.getElementById('manual-ingredients-text').value.trim();
+    // Görseli Base64'e çeviren yardımcı fonksiyon
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+      });
+    }
 
-      let extractedIngredients = "";
+    // GEMINI VISION API ENTEGRASYONU
+    async function processAIAnalysis() {
+      const fileInput = document.getElementById('ai-image-input');
 
-      if (fileInput.files.length > 0) {
-        showLoading(true, "Etiket görseli yapay zeka (OCR) ile okunuyor...");
-        try {
-          const file = fileInput.files[0];
-          const worker = await Tesseract.createWorker('tur');
-          const ret = await worker.recognize(file);
-          await worker.terminate();
-          extractedIngredients = ret.data.text;
-        } catch (error) {
-          console.error("OCR Hatası:", error);
-          alert("Görsel okunamadı. Lütfen metni manuel yazın.");
-        }
-      }
-
-      if (manualText) {
-        extractedIngredients += " " + manualText;
-      }
-
-      showLoading(false);
-
-      if (!extractedIngredients.trim()) {
-        alert("Lütfen bir etiket fotoğrafı yükleyin veya içindekiler kısmını yazın.");
+      if (fileInput.files.length === 0) {
+        alert("Lütfen ürünün arka etiketinin veya içindekiler kısmının fotoğrafını yükleyin.");
         return;
       }
 
-      // Sahte/Standart Ürün Yapısı Oluşturup Analize Gönder
-      const customProduct = {
-        product_name: "Tarama / Manuel Girilen Ürün",
-        brands: "Bilinmiyor",
-        ingredients_text: extractedIngredients,
-        nutriments: { sugars_100g: 0, salt_100g: 0, 'saturated-fat_100g': 0, proteins_100g: 0 }
-      };
-
+      showLoading(true, "Gemini Vision AI görseli okuyor ve sağlığınızı analiz ediyor...");
       document.getElementById('ocr-fallback-card').classList.add('hidden');
-      displayResults(customProduct);
+
+      try {
+        const file = fileInput.files[0];
+        const base64Image = await fileToBase64(file);
+        const mimeType = file.type;
+        const profileContext = getUserProfileString();
+
+        const promptText = `
+          GÖREV: Sana gönderilen gıda ambalajı/içindekiler fotoğrafını detaylıca oku. Yamuk, silik veya küçük yazıları gıda terminolojisine göre anlamlandırarak tamamla. Tespit ettiğin içeriği kullanıcının sağlık profilindeki hastalıklar ve diyet gereksinimleriyle kıyasla.
+          
+          ${profileContext}
+          
+          KURAL: Sadece ve sadece aşağıdaki JSON formatında, temiz, geçerli (valid) bir çıktı ver. JSON etrafında markdown, backtick (\`\`\`) veya ekstra yazı KULLANMA. Bulamadığın değerlere 0 yaz.
+
+          {
+            "product_name": "Görselden tespit edilen ürün adı veya markası",
+            "ingredients_text": "Okuduğun tüm içindekiler listesi (virgülle ayrılmış düz metin)",
+            "nutriments": {
+              "sugars_100g": 12.5,
+              "salt_100g": 1.2,
+              "saturated-fat_100g": 3.5,
+              "proteins_100g": 6.0
+            },
+            "ai_status": "RISKLI, DIKKATLI veya UYGUN (Birisini seç)",
+            "ai_assessment": "Görseldeki içeriklerin kullanıcının belirtilen sağlık profiliyle doğrudan etkileşimine dair 2 cümlelik, açıklayıcı yapay zeka sağlık değerlendirmesi."
+          }
+        `;
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: mimeType, data: base64Image } }
+              ]
+            }]
+          })
+        });
+
+        const data = await response.json();
+        
+        if (!data.candidates) {
+          throw new Error("API'den geçersiz yanıt alındı.");
+        }
+
+        let aiText = data.candidates[0].content.parts[0].text;
+        
+        // Gemini'nin ekleyebileceği Markdown JSON formatlarını temizle
+        aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const aiProduct = JSON.parse(aiText);
+        
+        // Ekrana bastırma fonksiyonuna gönder
+        displayResults(aiProduct, true);
+
+      } catch (error) {
+        console.error("Yapay Zeka Hatası:", error);
+        alert("Görsel analiz edilemedi veya metin okunamadı. Fotoğrafın net olduğundan emin olup tekrar deneyin.");
+        document.getElementById('ocr-fallback-card').classList.remove('hidden');
+      } finally {
+        showLoading(false);
+      }
     }
 
-    function showLoading(state, text = "Yükleniyor...") {
+    function showLoading(state, text = "İşleniyor...") {
       const loader = document.getElementById('loading');
       document.getElementById('loading-text').innerText = text;
       if (state) loader.classList.remove('hidden');
       else loader.classList.add('hidden');
     }
 
-    function displayResults(product) {
+    function displayResults(product, isAiGenerated) {
       document.getElementById('result-card').classList.remove('hidden');
 
       document.getElementById('product-title').innerText = product.product_name_tr || product.product_name || "İsimsiz Ürün";
-      document.getElementById('product-brand').innerText = product.brands || "Marka Belirtilmemiş";
+      document.getElementById('product-brand').innerText = product.brands || "Marka Tespit Edilemedi";
       
       const imgElem = document.getElementById('product-img');
-      if (product.image_front_small_url) {
+      const aiBadge = document.getElementById('ai-badge');
+      
+      if (product.image_front_small_url && !isAiGenerated) {
         imgElem.src = product.image_front_small_url;
         imgElem.classList.remove('hidden');
       } else {
         imgElem.classList.add('hidden');
       }
 
-      // Nutri-Score Rozeti
-      const nutriBadge = document.getElementById('nutriscore-badge');
-      if (product.nutriscore_grade) {
-        const grade = product.nutriscore_grade.toUpperCase();
-        nutriBadge.innerText = `Nutri-Score ${grade}`;
-        nutriBadge.classList.remove('hidden');
-        const colors = { 'A': 'bg-emerald-600', 'B': 'bg-green-500', 'C': 'bg-yellow-500', 'D': 'bg-orange-500', 'E': 'bg-red-600' };
-        nutriBadge.className = `px-3 py-1 rounded-lg text-xs font-bold text-white uppercase ${colors[grade] || 'bg-slate-500'}`;
+      if (isAiGenerated) {
+        aiBadge.classList.remove('hidden');
       } else {
-        nutriBadge.classList.add('hidden');
+        aiBadge.classList.add('hidden');
       }
 
-      // Besin Değerleri (100g)
       const nutriments = product.nutriments || {};
       const sugar = nutriments.sugars_100g !== undefined ? parseFloat(nutriments.sugars_100g).toFixed(1) : 0;
       const salt = nutriments.salt_100g !== undefined ? parseFloat(nutriments.salt_100g).toFixed(1) : 0;
@@ -396,21 +439,32 @@
       document.getElementById('nutr-fat').innerText = `${fat} g`;
       document.getElementById('nutr-protein').innerText = `${protein} g`;
 
-      // İçindekiler Metni
-      const ingredients = product.ingredients_text_tr || product.ingredients_text || "İçindekiler bilgisi bulunmuyor.";
+      const ingredients = product.ingredients_text_tr || product.ingredients_text || "İçindekiler bilgisi bulunmuyor veya okunamadı.";
       document.getElementById('ingredients-text').innerText = ingredients;
 
-      // Kişiselleştirilmiş Sağlık Analizi ve Günlük İhtiyaç Hesabı
-      evaluateHealth(sugar, salt, fat, protein, ingredients);
+      const statusBox = document.getElementById('health-status');
+      
+      // Eğer veritabanından geldiyse eski klasik kurallı motor çalışsın
+      if (!isAiGenerated) {
+         evaluateClassicalHealth(sugar, salt, fat, protein, ingredients, statusBox);
+      } 
+      // Eğer Gemini Vision AI'dan geldiyse direkt yapay zekanın yargısını kullanalım
+      else {
+         if (product.ai_status === 'RISKLI') {
+            statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-red-50 text-red-700 border-red-500";
+            statusBox.innerHTML = `<strong class="block mb-1 text-red-800">⚠️ Riskli:</strong> ${product.ai_assessment}`;
+         } else if (product.ai_status === 'DIKKATLI') {
+            statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-yellow-50 text-yellow-700 border-yellow-500";
+            statusBox.innerHTML = `<strong class="block mb-1 text-yellow-800">🤔 Dikkatli Tüketilmeli:</strong> ${product.ai_assessment}`;
+         } else {
+            statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-emerald-50 text-emerald-700 border-emerald-500";
+            statusBox.innerHTML = `<strong class="block mb-1 text-emerald-800">✅ Uygun:</strong> ${product.ai_assessment}`;
+         }
+      }
     }
 
-    function evaluateHealth(sugar, salt, fat, protein, ingredients) {
-      // Profil değerlerini al
-      const weight = parseFloat(document.getElementById('weight').value) || 70;
-      const height = parseFloat(document.getElementById('height').value) || 170;
-      const age = parseInt(document.getElementById('age').value) || 25;
-      const gender = document.getElementById('gender').value;
-
+    // Klasik veritabanı sağlık kontrolcüsü
+    function evaluateClassicalHealth(sugar, salt, fat, protein, ingredients, statusBox) {
       const isDiabet = document.getElementById('diabet').checked;
       const isHyper = document.getElementById('hyper').checked;
       const isCeliac = document.getElementById('celiac').checked;
@@ -424,64 +478,32 @@
       let positive = [];
       const ingLower = ingredients.toLowerCase();
 
-      // Risk Analizleri
-      if (isDiabet && sugar > 5) {
-        warnings.push(`Diyabet Riski: Yüksek şeker (${sugar}g / 100g). Kan şekerini hızlı yükseltebilir.`);
-      }
-      if (isHyper && salt > 1.2) {
-        warnings.push(`Tansiyon Riski: Yüksek tuz (${salt}g / 100g). Sodyum kısıtlamanıza aykırı.`);
-      }
-      if (isCeliac && (ingLower.includes('buğday') || ingLower.includes('gluten') || ingLower.includes('arpa') || ingLower.includes('çavdar') || ingLower.includes('yulaf'))) {
-        warnings.push(`Çölyak Riski: Ürün gluten/buğday bileşenleri içeriyor!`);
-      }
-      if (isLactose && (ingLower.includes('süt') || ingLower.includes('laktoz') || ingLower.includes('peynir altı suyu') || ingLower.includes('krema'))) {
-        warnings.push(`Laktoz Uyarı: Süt veya süt türevi ürün içeriyor.`);
-      }
-      if (isCholesterol && fat > 4) {
-        warnings.push(`Kolesterol Riski: Yüksek doymuş yağ (${fat}g / 100g).`);
-      }
-      if (isKidney && (protein > 15 || salt > 1.0)) {
-        warnings.push(`Böbrek Sağlığı Uyarısı: Yüksek protein/tuz böbrek yükünü artırabilir.`);
-      }
-      if (isNutAllergy && (ingLower.includes('fındık') || ingLower.includes('fıstık') || ingLower.includes('badem') || ingLower.includes('ceviz') || ingLower.includes('kaju') || ingLower.includes('susam'))) {
-        warnings.push(`🚨 ALERJEN UYARISI: Ürün kuruyemiş/fıstık bileşeni içeriyor!`);
-      }
-      if (isAthlete && protein >= 10) {
-        positive.push(`Sporcu Dostu: Yüksek protein oranı (${protein}g / 100g).`);
-      }
+      if (isDiabet && sugar > 5) warnings.push(`Diyabet Riski: Yüksek şeker (${sugar}g / 100g).`);
+      if (isHyper && salt > 1.2) warnings.push(`Tansiyon Riski: Yüksek tuz (${salt}g / 100g).`);
+      if (isCeliac && (ingLower.includes('buğday') || ingLower.includes('gluten') || ingLower.includes('arpa'))) warnings.push(`Çölyak Riski: Ürün gluten bileşenleri içeriyor!`);
+      if (isLactose && (ingLower.includes('süt') || ingLower.includes('laktoz') || ingLower.includes('peynir altı suyu'))) warnings.push(`Laktoz Uyarı: Süt ürünü içeriyor.`);
+      if (isCholesterol && fat > 4) warnings.push(`Kolesterol Riski: Yüksek doymuş yağ.`);
+      if (isKidney && (protein > 15 || salt > 1.0)) warnings.push(`Böbrek Uyarısı: Yüksek protein/tuz böbrek yükünü artırabilir.`);
+      if (isNutAllergy && (ingLower.includes('fındık') || ingLower.includes('fıstık') || ingLower.includes('badem'))) warnings.push(`🚨 ALERJEN UYARISI: Ürün kuruyemiş içeriyor!`);
+      if (isAthlete && protein >= 10) positive.push(`Sporcu Dostu: Yüksek protein oranı (${protein}g).`);
 
-      // Sağlık Durum Kutusu Güncelleme
-      const statusBox = document.getElementById('health-status');
       if (warnings.length > 0) {
         statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-red-50 text-red-700 border-red-500";
-        statusBox.innerHTML = `<strong class="block mb-1 text-red-800">⚠️ Riskli / Tüketilmesi Önerilmez:</strong>` + warnings.join('<br>');
+        statusBox.innerHTML = `<strong class="block mb-1 text-red-800">⚠️ Riskli / Önerilmez:</strong>` + warnings.join('<br>');
       } else if (positive.length > 0) {
         statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-emerald-50 text-emerald-700 border-emerald-500";
         statusBox.innerHTML = `<strong class="block mb-1 text-emerald-800">✅ Önerilir:</strong>` + positive.join('<br>');
       } else {
         statusBox.className = "p-4 rounded-xl text-sm font-medium border-l-4 bg-blue-50 text-blue-700 border-blue-500";
-        statusBox.innerHTML = `<strong class="block mb-1 text-blue-800">ℹ️ Uygun:</strong> Seçilen profil kriterlerine göre belirgin bir kısıtlama riski tespit edilmedi.`;
+        statusBox.innerHTML = `<strong class="block mb-1 text-blue-800">ℹ️ Uygun:</strong> Belirgin bir risk saptanmadı.`;
       }
-
-      // Günlük Kalori & Limit Hesaplama (Mifflin-St Jeor)
-      let bmr = (10 * weight) + (6.25 * height) - (5 * age) + (gender === 'male' ? 5 : -161);
-      let maxDailySugar = 25; // WHO günlük önerilen ideal limit (g)
-      let maxDailySalt = isHyper ? 3.0 : 5.0; // g
-
-      let sugarPercent = Math.min(100, ((sugar / maxDailySugar) * 100)).toFixed(0);
-      let saltPercent = Math.min(100, ((salt / maxDailySalt) * 100)).toFixed(0);
-
-      document.getElementById('daily-limits-content').innerHTML = `
-        <div>• 100 gramı günlük önerilen <strong>şeker limitinin %${sugarPercent}</strong> kadarını kapsıyor.</div>
-        <div>• 100 gramı günlük önerilen <strong>tuz limitinin %${saltPercent}</strong> kadarını kapsıyor.</div>
-      `;
     }
 
     function resetScanner() {
       document.getElementById('result-card').classList.add('hidden');
       document.getElementById('ocr-fallback-card').classList.add('hidden');
       document.getElementById('manual-barcode').value = '';
-      document.getElementById('manual-ingredients-text').value = '';
+      document.getElementById('ai-image-input').value = '';
       initBackCamera();
     }
   </script>
