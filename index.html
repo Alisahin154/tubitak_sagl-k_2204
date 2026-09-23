@@ -217,8 +217,22 @@
       alert("API Key temizlendi. Sonraki analizde yeni key sorulacaktır.");
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    // Girişte Doğrudan Kamera İzni İsteyen Fonksiyon
+    async function requestCameraPermissionOnEntry() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          // İzin alındıktan sonra geçici kamera akışını kapatıyoruz ki Html5Qrcode kameraya takılmadan erişebilsin
+          stream.getTracks().forEach(track => track.stop());
+        } catch (err) {
+          console.warn("Kamera izni reddedildi veya kamera bulunamadı:", err);
+        }
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
       loadProfile();
+      await requestCameraPermissionOnEntry(); // Girişte kullanıcıya kamera izni sorar
       initBackCamera();
     });
 
@@ -240,7 +254,81 @@
       };
 
       const conditions = [p.diabet, p.hyper, p.celiac, p.lactose, p.cholesterol, p.kidney, p.nutAllergy, p.athlete].filter(c => c !== '').join(', ');
-      return `Kullanıcı: ${p.age} yaşında, ${p.gender}, Boy: ${p.height}cm, Kilo:${p.weight}kg. Hastalık/Diyet profili: ${conditions \vert{}\vert{} 'Belirtilmedi'}.`;     }      // Profil Saklama/Yükleme     function saveProfile() {       const profile = {         gender: document.getElementById('gender').value,         age: document.getElementById('age').value,         height: document.getElementById('height').value,         weight: document.getElementById('weight').value,         diabet: document.getElementById('diabet').checked,         hyper: document.getElementById('hyper').checked,         celiac: document.getElementById('celiac').checked,         lactose: document.getElementById('lactose').checked,         cholesterol: document.getElementById('cholesterol').checked,         kidney: document.getElementById('kidney').checked,         nutAllergy: document.getElementById('nut-allergy').checked,         athlete: document.getElementById('athlete').checked       };       localStorage.setItem('healthProfile', JSON.stringify(profile));     }      function loadProfile() {       const saved = localStorage.getItem('healthProfile');       if (!saved) return;       const p = JSON.parse(saved);       document.getElementById('gender').value = p.gender \vert{}\vert{} 'female';       document.getElementById('age').value = p.age \vert{}\vert{} 25;       document.getElementById('height').value = p.height \vert{}\vert{} 170;       document.getElementById('weight').value = p.weight \vert{}\vert{} 70;              document.getElementById('diabet').checked = !!p.diabet;       document.getElementById('hyper').checked = !!p.hyper;       document.getElementById('celiac').checked = !!p.celiac;       document.getElementById('lactose').checked = !!p.lactose;       document.getElementById('cholesterol').checked = !!p.cholesterol;       document.getElementById('kidney').checked = !!p.kidney;       document.getElementById('nut-allergy').checked = !!p.nutAllergy;       document.getElementById('athlete').checked = !!p.athlete;     }      // Kamera ve Barkod     function initBackCamera() {       html5QrCode = new Html5Qrcode("reader");       const config = { fps: 10, qrbox: { width: 220, height: 180 } };        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)         .catch(() => {           html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)             .catch(e => console.error("Kamera açılamadı:", e));         });     }      function onScanSuccess(decodedText) {       if (html5QrCode && html5QrCode.isScanning) {         html5QrCode.stop().then(() => fetchProductData(decodedText)).catch(() => fetchProductData(decodedText));       } else {         fetchProductData(decodedText);       }     }      function handleManualSearch() {       const barcode = document.getElementById('manual-barcode').value.trim();       if (!barcode) return alert("Lütfen barkod girin.");       if (html5QrCode && html5QrCode.isScanning) {         html5QrCode.stop().then(() => fetchProductData(barcode)).catch(() => fetchProductData(barcode));       } else {         fetchProductData(barcode);       }     }      function fetchProductData(barcode) {       showLoading(true, "Veritabanı aranıyor...");       document.getElementById('result-card').classList.add('hidden');       document.getElementById('ocr-fallback-card').classList.add('hidden');        fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+      return `Kullanıcı: ${p.age} yaşında, ${p.gender}, Boy: ${p.height}cm, Kilo:${p.weight}kg. Hastalık/Diyet profili: ${conditions || 'Belirtilmedi'}.`;
+    }
+
+    // Profil Saklama/Yükleme
+    function saveProfile() {
+      const profile = {
+        gender: document.getElementById('gender').value,
+        age: document.getElementById('age').value,
+        height: document.getElementById('height').value,
+        weight: document.getElementById('weight').value,
+        diabet: document.getElementById('diabet').checked,
+        hyper: document.getElementById('hyper').checked,
+        celiac: document.getElementById('celiac').checked,
+        lactose: document.getElementById('lactose').checked,
+        cholesterol: document.getElementById('cholesterol').checked,
+        kidney: document.getElementById('kidney').checked,
+        nutAllergy: document.getElementById('nut-allergy').checked,
+        athlete: document.getElementById('athlete').checked
+      };
+      localStorage.setItem('healthProfile', JSON.stringify(profile));
+    }
+
+    function loadProfile() {
+      const saved = localStorage.getItem('healthProfile');
+      if (!saved) return;
+      const p = JSON.parse(saved);
+      document.getElementById('gender').value = p.gender || 'female';
+      document.getElementById('age').value = p.age || 25;
+      document.getElementById('height').value = p.height || 170;
+      document.getElementById('weight').value = p.weight || 70;
+      document.getElementById('diabet').checked = !!p.diabet;
+      document.getElementById('hyper').checked = !!p.hyper;
+      document.getElementById('celiac').checked = !!p.celiac;
+      document.getElementById('lactose').checked = !!p.lactose;
+      document.getElementById('cholesterol').checked = !!p.cholesterol;
+      document.getElementById('kidney').checked = !!p.kidney;
+      document.getElementById('nut-allergy').checked = !!p.nutAllergy;
+      document.getElementById('athlete').checked = !!p.athlete;
+    }
+
+    // Kamera ve Barkod
+    function initBackCamera() {
+      html5QrCode = new Html5Qrcode("reader");
+      const config = { fps: 10, qrbox: { width: 220, height: 180 } };
+      html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+        .catch(() => {
+          html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
+            .catch(e => console.error("Kamera açılamadı:", e));
+        });
+    }
+
+    function onScanSuccess(decodedText) {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => fetchProductData(decodedText)).catch(() => fetchProductData(decodedText));
+      } else {
+        fetchProductData(decodedText);
+      }
+    }
+
+    function handleManualSearch() {
+      const barcode = document.getElementById('manual-barcode').value.trim();
+      if (!barcode) return alert("Lütfen barkod girin.");
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => fetchProductData(barcode)).catch(() => fetchProductData(barcode));
+      } else {
+        fetchProductData(barcode);
+      }
+    }
+
+    function fetchProductData(barcode) {
+      showLoading(true, "Veritabanı aranıyor...");
+      document.getElementById('result-card').classList.add('hidden');
+      document.getElementById('ocr-fallback-card').classList.add('hidden');
+
+      fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
         .then(res => res.json())
         .then(data => {
           showLoading(false);
