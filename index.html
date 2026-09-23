@@ -132,6 +132,9 @@
       <button onclick="processAIAnalysis()" class="w-full bg-amber-600 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-amber-700 transition flex items-center justify-center space-x-2">
         <span>Gemini AI ile Analiz Et</span>
       </button>
+      <button onclick="resetApiKey()" class="w-full text-amber-800 text-[10px] underline hover:text-amber-900 text-center">
+        API Key Değiştir / Sıfırla
+      </button>
     </section>
 
     <!-- 4. Detaylı Ürün Analiz Kartı -->
@@ -192,10 +195,27 @@
   </main>
 
   <script>
-    // --- GÜVENLİK NOTU: Proje canlıya alındığında API anahtarı backend/sunucu tarafına taşınmalıdır ---
-    const GEMINI_API_KEY = "AQ.Ab8RN6LVBGJpRgpTPynSnHwvgWS3--s3tN_W4BzFkdtWbHNMSg"; 
-    
     let html5QrCode;
+
+    // API Key Alıcı (Koda gömülü değildir, tarayıcı hafızasında saklanır)
+    function getApiKey() {
+      let key = localStorage.getItem('GEMINI_API_KEY');
+      if (!key) {
+        key = prompt("Lütfen Gemini API Key'inizi giriniz (Anahtar sadece cihazınızda saklanır):");
+        if (key && key.trim() !== '') {
+          key = key.trim();
+          localStorage.setItem('GEMINI_API_KEY', key);
+        } else {
+          return null;
+        }
+      }
+      return key;
+    }
+
+    function resetApiKey() {
+      localStorage.removeItem('GEMINI_API_KEY');
+      alert("API Key temizlendi. Sonraki analizde yeni key sorulacaktır.");
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       loadProfile();
@@ -220,83 +240,7 @@
       };
 
       const conditions = [p.diabet, p.hyper, p.celiac, p.lactose, p.cholesterol, p.kidney, p.nutAllergy, p.athlete].filter(c => c !== '').join(', ');
-      return `Kullanıcı: ${p.age} yaşında, ${p.gender}, Boy: ${p.height}cm, Kilo:${p.weight}kg. Hastalık/Diyet profili: ${conditions || 'Belirtilmedi'}.`;
-    }
-
-    // Profil Saklama/Yükleme
-    function saveProfile() {
-      const profile = {
-        gender: document.getElementById('gender').value,
-        age: document.getElementById('age').value,
-        height: document.getElementById('height').value,
-        weight: document.getElementById('weight').value,
-        diabet: document.getElementById('diabet').checked,
-        hyper: document.getElementById('hyper').checked,
-        celiac: document.getElementById('celiac').checked,
-        lactose: document.getElementById('lactose').checked,
-        cholesterol: document.getElementById('cholesterol').checked,
-        kidney: document.getElementById('kidney').checked,
-        nutAllergy: document.getElementById('nut-allergy').checked,
-        athlete: document.getElementById('athlete').checked
-      };
-      localStorage.setItem('healthProfile', JSON.stringify(profile));
-    }
-
-    function loadProfile() {
-      const saved = localStorage.getItem('healthProfile');
-      if (!saved) return;
-      const p = JSON.parse(saved);
-      document.getElementById('gender').value = p.gender || 'female';
-      document.getElementById('age').value = p.age || 25;
-      document.getElementById('height').value = p.height || 170;
-      document.getElementById('weight').value = p.weight || 70;
-      
-      document.getElementById('diabet').checked = !!p.diabet;
-      document.getElementById('hyper').checked = !!p.hyper;
-      document.getElementById('celiac').checked = !!p.celiac;
-      document.getElementById('lactose').checked = !!p.lactose;
-      document.getElementById('cholesterol').checked = !!p.cholesterol;
-      document.getElementById('kidney').checked = !!p.kidney;
-      document.getElementById('nut-allergy').checked = !!p.nutAllergy;
-      document.getElementById('athlete').checked = !!p.athlete;
-    }
-
-    // Kamera ve Barkod
-    function initBackCamera() {
-      html5QrCode = new Html5Qrcode("reader");
-      const config = { fps: 10, qrbox: { width: 220, height: 180 } };
-
-      html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-        .catch(() => {
-          html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)
-            .catch(e => console.error("Kamera açılamadı:", e));
-        });
-    }
-
-    function onScanSuccess(decodedText) {
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => fetchProductData(decodedText)).catch(() => fetchProductData(decodedText));
-      } else {
-        fetchProductData(decodedText);
-      }
-    }
-
-    function handleManualSearch() {
-      const barcode = document.getElementById('manual-barcode').value.trim();
-      if (!barcode) return alert("Lütfen barkod girin.");
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => fetchProductData(barcode)).catch(() => fetchProductData(barcode));
-      } else {
-        fetchProductData(barcode);
-      }
-    }
-
-    function fetchProductData(barcode) {
-      showLoading(true, "Veritabanı aranıyor...");
-      document.getElementById('result-card').classList.add('hidden');
-      document.getElementById('ocr-fallback-card').classList.add('hidden');
-
-      fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+      return `Kullanıcı: ${p.age} yaşında, ${p.gender}, Boy: ${p.height}cm, Kilo:${p.weight}kg. Hastalık/Diyet profili: ${conditions \vert{}\vert{} 'Belirtilmedi'}.`;     }      // Profil Saklama/Yükleme     function saveProfile() {       const profile = {         gender: document.getElementById('gender').value,         age: document.getElementById('age').value,         height: document.getElementById('height').value,         weight: document.getElementById('weight').value,         diabet: document.getElementById('diabet').checked,         hyper: document.getElementById('hyper').checked,         celiac: document.getElementById('celiac').checked,         lactose: document.getElementById('lactose').checked,         cholesterol: document.getElementById('cholesterol').checked,         kidney: document.getElementById('kidney').checked,         nutAllergy: document.getElementById('nut-allergy').checked,         athlete: document.getElementById('athlete').checked       };       localStorage.setItem('healthProfile', JSON.stringify(profile));     }      function loadProfile() {       const saved = localStorage.getItem('healthProfile');       if (!saved) return;       const p = JSON.parse(saved);       document.getElementById('gender').value = p.gender \vert{}\vert{} 'female';       document.getElementById('age').value = p.age \vert{}\vert{} 25;       document.getElementById('height').value = p.height \vert{}\vert{} 170;       document.getElementById('weight').value = p.weight \vert{}\vert{} 70;              document.getElementById('diabet').checked = !!p.diabet;       document.getElementById('hyper').checked = !!p.hyper;       document.getElementById('celiac').checked = !!p.celiac;       document.getElementById('lactose').checked = !!p.lactose;       document.getElementById('cholesterol').checked = !!p.cholesterol;       document.getElementById('kidney').checked = !!p.kidney;       document.getElementById('nut-allergy').checked = !!p.nutAllergy;       document.getElementById('athlete').checked = !!p.athlete;     }      // Kamera ve Barkod     function initBackCamera() {       html5QrCode = new Html5Qrcode("reader");       const config = { fps: 10, qrbox: { width: 220, height: 180 } };        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)         .catch(() => {           html5QrCode.start({ facingMode: "user" }, config, onScanSuccess)             .catch(e => console.error("Kamera açılamadı:", e));         });     }      function onScanSuccess(decodedText) {       if (html5QrCode && html5QrCode.isScanning) {         html5QrCode.stop().then(() => fetchProductData(decodedText)).catch(() => fetchProductData(decodedText));       } else {         fetchProductData(decodedText);       }     }      function handleManualSearch() {       const barcode = document.getElementById('manual-barcode').value.trim();       if (!barcode) return alert("Lütfen barkod girin.");       if (html5QrCode && html5QrCode.isScanning) {         html5QrCode.stop().then(() => fetchProductData(barcode)).catch(() => fetchProductData(barcode));       } else {         fetchProductData(barcode);       }     }      function fetchProductData(barcode) {       showLoading(true, "Veritabanı aranıyor...");       document.getElementById('result-card').classList.add('hidden');       document.getElementById('ocr-fallback-card').classList.add('hidden');        fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
         .then(res => res.json())
         .then(data => {
           showLoading(false);
@@ -331,6 +275,12 @@
         return;
       }
 
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        alert("API Key girilmediği için görsel analizi yapılamıyor.");
+        return;
+      }
+
       showLoading(true, "Gemini Vision AI görseli okuyor ve sağlığınızı analiz ediyor...");
       document.getElementById('ocr-fallback-card').classList.add('hidden');
 
@@ -361,7 +311,7 @@
           }
         `;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
